@@ -6,28 +6,29 @@ import numpy as np
 f = gzip.open('mnist.pkl.gz', 'rb')
 train_set, valid_set, test_set = pickle.load(f, encoding='latin1')
 f.close()
-
-# build model
-vector_size = len(train_set[0][0])
 one_hot_labels = [np.zeros(10) for _ in train_set[1]]
 for i, label in enumerate(train_set[1]):
     one_hot_labels[i][label] = 1
 
+# build model
+vector_size = len(train_set[0][0])
+hidden_layer_size = 30
+
 mlp = Flow(inputs='x', outputs='y')
 mlp.connect_variable(name='x', sinks=['product1'])
 mlp.connect_parameter(name='W1', sinks=['product1'],
-                      shape=(11, vector_size))
+                      shape=(hidden_layer_size, vector_size))
 mlp.connect_map(name='product1', map=matrix_vector_product,
                 sources=['W1', 'x'], sink='p1')
 mlp.connect_variable(name='p1', source='product1', sinks=['sum1'])
 mlp.connect_parameter(name='b1', sinks=['sum1'],
-                      shape=(11,))
+                      shape=(hidden_layer_size,))
 mlp.connect_map(name='sum1', map=add, sources=['p1', 'b1'], sink='s1')
 mlp.connect_variable(name='s1', source='sum1', sinks=['sigmoid'])
 mlp.connect_map(name='sigmoid', map=sigmoid, sources=['s1'], sink='h')
 mlp.connect_variable(name='h', source='sigmoid', sinks=['product2'])
 mlp.connect_parameter(name='W2', sinks=['product2'],
-                      shape=(10, 11))
+                      shape=(10, hidden_layer_size))
 mlp.connect_map(name='product2', map=matrix_vector_product, sources=['W2', 'h'], sink='p2')
 mlp.connect_variable(name='p2', source='product2', sinks=['sum2'])
 mlp.connect_parameter(name='b2', sinks=['sum2'], shape=(10,))
