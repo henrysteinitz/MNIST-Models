@@ -1,6 +1,8 @@
 import tensorflow as tf
 import gzip, pickle
 import numpy as np
+from matplotlib import pyplot as plt
+
 
 # Load data
 f = gzip.open('mnist.pkl.gz', 'rb')
@@ -49,3 +51,18 @@ print(accuracy.eval(feed_dict={
     x: test_set[0],
     y_: test_set_labels
 }))
+
+
+# Daydream
+noise = np.array([np.zeros(784)])
+digit = 2
+image_gradient = tf.gradients([tf.slice(y, [0, digit], [1, 1])], [x])
+print(image_gradient)
+for k in range(40000):
+    if (k%100 == 0):
+        print(k)
+    step = image_gradient[0].eval(feed_dict={x: noise})
+    noise += step*(100.0)
+
+plt.imshow(noise.reshape([28,28]), interpolation='nearest')
+plt.show()
